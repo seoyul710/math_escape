@@ -23,6 +23,14 @@
       overscroll-behavior: none;
       overflow: hidden;
     }
+    html.scroll-locked {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    html.scroll-unlocked {
+      overflow: auto;
+      overscroll-behavior: auto;
+    }
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -35,10 +43,19 @@
       color: #e5e7eb;
       display: flex;
       justify-content: center;
+    }
+    body.scroll-locked {
       overflow: hidden;
       position: fixed;
       inset: 0;
       overscroll-behavior: none;
+      touch-action: none;
+    }
+    body.scroll-unlocked {
+      overflow: auto;
+      position: static;
+      inset: auto;
+      overscroll-behavior: auto;
       touch-action: pan-x pan-y;
     }
     .app {
@@ -307,6 +324,35 @@
   </div>
 
   <script>
+    let savedScrollY = 0;
+
+    function setScrollLocked(locked) {
+      const html = document.documentElement;
+      const body = document.body;
+
+      if (locked) {
+        savedScrollY = window.scrollY || 0;
+
+        html.classList.remove('scroll-unlocked');
+        html.classList.add('scroll-locked');
+
+        body.classList.remove('scroll-unlocked');
+        body.classList.add('scroll-locked');
+
+        body.style.top = `-${savedScrollY}px`;
+      } else {
+        html.classList.remove('scroll-locked');
+        html.classList.add('scroll-unlocked');
+
+        body.classList.remove('scroll-locked');
+        body.classList.add('scroll-unlocked');
+
+        const y = savedScrollY;
+        body.style.top = '';
+        window.scrollTo(0, y);
+      }
+    }
+
     const CARD_CONFIGS = [
       { id: 'c1', label: '카드 1', coloredIndices: [0, 1, 2, 9, 10, 14], isCorrect: true },
       { id: 'c2', label: '카드 2', coloredIndices: [0, 2, 3, 6, 7, 8], isCorrect: true },
@@ -496,13 +542,15 @@
 
       setTimeout(() => {
         resetButton.classList.remove('hidden');
-      }, 3000);
+        setScrollLocked(false);
+      }, 2000);
       return true;
     }
 
     function resetGame() {
       state.selected.clear();
       state.locked = false;
+      setScrollLocked(true);
       state.overlap = Array(15).fill(0);
       cardElements.forEach((el) => {
         el.classList.remove('selected', 'disabled', 'animate', 'selected-wrong');
@@ -514,6 +562,7 @@
     }
 
     function init() {
+      setScrollLocked(true);
       buildResultGrid();
       buildCards();
       updateResult();
