@@ -144,7 +144,7 @@
       width: 100%;
       background: rgba(17,24,39,0.6);
       border-radius: var(--radius);
-      padding: 0px 4px 12px 4px;
+      padding: 12px 4px;
       box-shadow: 0 12px 30px rgba(0,0,0,0.35);
       margin-bottom: 4px;
     }
@@ -248,10 +248,6 @@
       border-color: var(--accent);
       box-shadow: var(--glow);
     }
-    .card.selected-wrong {
-      border-color: var(--danger);
-      box-shadow: 0 0 0 3px rgba(248,113,113,0.5), 0 10px 24px rgba(248,113,113,0.35);
-    }
     .card.hide-border {
       border-color: transparent !important;
       box-shadow: none !important;
@@ -291,18 +287,6 @@
       50% { transform: rotateY(180deg) scale(1); }
       100% { transform: rotateY(360deg) scale(1); }
     }
-    .status-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      color: var(--muted);
-      padding: 0 4px;
-      padding-bottom: 10px;
-    }
-    .status-strong { color: #e5e7eb; font-weight: 600; }
-    .hint { color: var(--muted); }
     .reset-btn {
       margin-top: 10px;
       padding: 12px 18px;
@@ -326,7 +310,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>4장의 카드를 조합해 숨겨진 숫자를 찾아보세요</h1>
+      <h1>카드를 조합해 숨겨진 숫자를 찾아보세요</h1>
     </header>
 
     <section class="result-area">
@@ -336,9 +320,6 @@
     </section>
 
     <section class="cards-area">
-      <div class="status-bar">
-        <span class="status-strong">선택한 카드: <span id="selectedCount">0</span> / 4</span>
-      </div>
       <div id="cardsRow" class="cards-row"></div>
     </section>
 
@@ -395,7 +376,6 @@
     const resultGrid = document.getElementById('resultGrid');
     const resultWrapper = document.getElementById('resultWrapper');
     const resetButton = document.getElementById('resetButton');
-    const selectedCountEl = document.getElementById('selectedCount');
     const resultCells = [];
     const cardElements = new Map();
 
@@ -499,20 +479,8 @@
         if (card) card.coloredIndices.forEach(idx => { state.overlap[idx] += 1; });
       });
       applyOverlapToResult();
-      selectedCountEl.textContent = state.selected.size;
     }
 
-    function updateSelectionHighlights() {
-      const isFour = state.selected.size === 4;
-      const isAllCorrect = isFour && CORRECT_IDS.every(id => state.selected.has(id));
-      cardElements.forEach((el, id) => {
-        el.classList.remove('selected-wrong');
-        if (state.selected.has(id) && isFour && !isAllCorrect) {
-          el.classList.add('selected-wrong');
-        }
-      });
-      return isAllCorrect;
-    }
 
     function playSelectAnimation(cardEl, onDone) {
       const rect = cardEl.getBoundingClientRect();
@@ -557,19 +525,15 @@
         state.selected.delete(id);
         cardEl.classList.remove('selected');
         updateResult();
-        updateSelectionHighlights();
         return;
       }
-
-      if (state.selected.size >= 4) return;
 
       state.selected.add(id);
       playSelectAnimation(cardEl, () => {
         cardEl.classList.add('selected');
       });
       updateResult();
-      const isWin = checkForWin();
-      if (!isWin) updateSelectionHighlights();
+      checkForWin();
     }
 
     function checkForWin() {
@@ -597,7 +561,7 @@
       setScrollLocked(true);
       state.overlap = Array(15).fill(0);
       cardElements.forEach((el) => {
-        el.classList.remove('selected', 'disabled', 'animate', 'selected-wrong');
+        el.classList.remove('selected', 'disabled', 'animate');
       });
       resultWrapper.classList.remove('success');
       resetButton.classList.add('hidden');
