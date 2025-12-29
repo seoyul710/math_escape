@@ -525,6 +525,7 @@
         state.selected.delete(id);
         cardEl.classList.remove('selected');
         updateResult();
+        checkForWin();
         return;
       }
 
@@ -566,7 +567,6 @@
       resultWrapper.classList.remove('success');
       resetButton.classList.add('hidden');
       updateResult();
-      updateSelectionHighlights();
     }
 
     function init() {
